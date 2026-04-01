@@ -125,7 +125,7 @@ return {
       -- also needs:
       -- $home/.config/marksman/config.toml :
       -- [core]
-      -- markdown.file_extensions = ["md", "markdown", "qmd"]
+      -- markdown.file_extensions = ["md", "markdown"]
       lspconfig.marksman.setup {
         capabilities = capabilities,
         filetypes = { 'markdown', 'quarto' },

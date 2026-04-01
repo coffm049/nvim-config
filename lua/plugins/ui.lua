@@ -40,10 +40,31 @@ return {
 
       local telescope_config = require 'telescope.config'
       -- Clone the default Telescope configuration
-      local vimgrep_arguments = { unpack(telescope_config.values.vimgrep_arguments) }
+      local vimgrep_arguments = {
+        vim.fn.expand("~/software/ripgrep/target/release/rg"),
+        "--color=never",
+        "--no-heading",
+        "--with-filename",
+        "--line-number",
+        "--column",
+        "--smart-case",
+      }
+      -- local vimgrep_arguments = { unpack(telescope_config.values.vimgrep_arguments) }
       -- I don't want to search in the `docs` directory (rendered quarto output).
       table.insert(vimgrep_arguments, '--glob')
       table.insert(vimgrep_arguments, '!docs/*')
+      table.insert(vimgrep_arguments, '--glob')
+      table.insert(vimgrep_arguments, '!*_files/*')
+      table.insert(vimgrep_arguments, '--glob')
+      table.insert(vimgrep_arguments, '!*_cache/*')
+      table.insert(vimgrep_arguments, '--glob')
+      table.insert(vimgrep_arguments, '!*.csv')
+      table.insert(vimgrep_arguments, '--glob')
+      table.insert(vimgrep_arguments, '!*.png')
+      table.insert(vimgrep_arguments, '--glob')
+      table.insert(vimgrep_arguments, '!*.html')
+      table.insert(vimgrep_arguments, '--glob')
+      table.insert(vimgrep_arguments, '!*.bin')
 
       telescope.setup {
         defaults = {

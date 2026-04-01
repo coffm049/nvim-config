@@ -2,6 +2,21 @@
 
 local animals = require('misc.style').animals
 
+vim.g.clipboard = {
+  name = 'osc52',
+  copy = {
+    ['+'] = require('vim.ui.clipboard.osc52').copy,
+    ['*'] = require('vim.ui.clipboard.osc52').copy,
+  },
+  paste = {
+    ['+'] = require('vim.ui.clipboard.osc52').paste,
+    ['*'] = require('vim.ui.clipboard.osc52').paste,
+  },
+}
+
+
+vim.opt.clipboard = "unnamedplus"
+
 -- proper colors
 vim.opt.termguicolors = true
 
@@ -15,7 +30,7 @@ vim.o.fillchars = 'eob: '
 vim.opt.number = true -- show linenumbers
 vim.opt.mouse = 'a' -- enable mouse
 vim.opt.mousefocus = true
-vim.opt.clipboard:append 'unnamedplus' -- use system clipboard
+vim.wo.relativenumber = true
 
 vim.opt.timeoutlen = 400 -- until which-key pops up
 vim.opt.updatetime = 250 -- for autocommands and hovers
