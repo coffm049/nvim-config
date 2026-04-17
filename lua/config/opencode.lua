@@ -1,0 +1,2 @@
+-- OpenCode configuration placeholder
+-- Project-specific database isolation will be added when OPENCODE_HOME is supported

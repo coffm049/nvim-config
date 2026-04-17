@@ -3,17 +3,16 @@
 local animals = require('misc.style').animals
 
 vim.g.clipboard = {
-  name = 'osc52',
+  name = 'xclip',
   copy = {
-    ['+'] = require('vim.ui.clipboard.osc52').copy,
-    ['*'] = require('vim.ui.clipboard.osc52').copy,
+    ['+'] = 'xclip -selection clipboard -i',
+    ['*'] = 'xclip -selection primary -i',
   },
   paste = {
-    ['+'] = require('vim.ui.clipboard.osc52').paste,
-    ['*'] = require('vim.ui.clipboard.osc52').paste,
+    ['+'] = 'xclip -selection clipboard -o',
+    ['*'] = 'xclip -selection primary -o',
   },
 }
-
 
 vim.opt.clipboard = "unnamedplus"
 

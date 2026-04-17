@@ -299,18 +299,10 @@ vim.keymap.set("n", "<leader>os", get_otter_symbols_lang, {desc = "otter [s]ymbo
 
 
 vim.keymap.set("n", "<leader>ao", function()
-  -- Get the current project folder name to create a unique ID
-  local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-  local data_dir = vim.fn.expand("~/.local/share/opencode-" .. project_name)
-  
-  -- Create the directory if it doesn't exist
-  vim.fn.mkdir(data_dir, "p")
-
   vim.cmd("tabnew")
-  -- Launch with the isolated environment variable
-  vim.cmd("terminal env OPENCODE_DATA_DIR=" .. data_dir .. " opencode")
+  vim.cmd("terminal opencode")
   vim.cmd("startinsert")
-end, { desc = "AI: Open Isolated Project Session" })
+end, { desc = "AI: Open OpenCode" })
 
 
 -- normal mode with <leader>
