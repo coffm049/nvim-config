@@ -208,7 +208,6 @@ wk.add({
     { "<c-q>", "<cmd>q<cr>", desc = "close buffer" },
     { "<cm-i>", insert_py_chunk, desc = "python code chunk" },
     { "<esc>", "<cmd>noh<cr>", desc = "remove search highlight" },
-    { "<m-I>", insert_py_chunk, desc = "python code chunk" },
     { "<m-i>", insert_r_chunk, desc = "r code chunk" },
     { "[q", ":silent cprev<cr>", desc = "[q]uickfix prev" },
     { "]q", ":silent cnext<cr>", desc = "[q]uickfix next" },
@@ -245,7 +244,6 @@ wk.add({
       { "<c-x><c-x>", "<c-x><c-o>", desc = "omnifunc completion" },
       { "<cm-i>", insert_py_chunk, desc = "python code chunk" },
       { "<m-->", " <- ", desc = "assign" },
-      { "<m-I>", insert_py_chunk, desc = "python code chunk" },
       { "<m-i>", insert_r_chunk, desc = "r code chunk" },
       { "<m-m>", " |>", desc = "pipe" },
     },
@@ -272,7 +270,10 @@ local function new_terminal_julia()
 end
 
 local function new_terminal_shell()
-  new_terminal '$SHELL'
+  -- $SHELL is not set on Windows; fall back to Neovim's 'shell' option
+  -- (powershell/cmd on Windows, bash/zsh on Unix)
+  local shell = vim.env.SHELL and vim.env.SHELL ~= '' and vim.env.SHELL or vim.o.shell
+  new_terminal(shell)
 end
 
 local function get_otter_symbols_lang()
@@ -299,10 +300,19 @@ vim.keymap.set("n", "<leader>os", get_otter_symbols_lang, {desc = "otter [s]ymbo
 
 
 vim.keymap.set("n", "<leader>ao", function()
+  -- Continue mode: vsplit like opencode.nvim's server.start (vsplit term://opencode --port | wincmd p)
+  vim.cmd("vsplit term://opencode --port -c | wincmd p")
+end, { desc = "AI: Open OpenCode (continue)" })
+
+-- Tabs: isolated project tabs (Option A - :tabnew | tcd)
+vim.keymap.set("n", "<leader>tn", function()
   vim.cmd("tabnew")
-  vim.cmd("terminal opencode")
-  vim.cmd("startinsert")
-end, { desc = "AI: Open OpenCode" })
+  vim.ui.input({ prompt = "New tab CWD: ", completion = "dir", default = vim.fn.getcwd() }, function(dir)
+    if dir and dir ~= "" then vim.cmd("tcd " .. vim.fn.fnameescape(dir)) end
+  end)
+end, { desc = "[t]ab [n]ew isolated (tcd)" })
+vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "[t]ab [c]lose" })
+vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "[t]ab [o]nly" })
 
 
 -- normal mode with <leader>
@@ -388,6 +398,10 @@ wk.add({
     { "<leader>vm", ":Mason<cr>", desc = "[m]ason software installer" },
     { "<leader>vs", ":e $MYVIMRC | :cd %:p:h | split . | wincmd k<cr>", desc = "[s]ettings, edit vimrc" },
     { "<leader>vt", toggle_light_dark_theme, desc = "[t]oggle light/dark theme" },
+    { "<leader>t", group = "[t]ab" },
+    { "<leader>tn", function() vim.cmd("tabnew"); vim.ui.input({ prompt = "New tab CWD: ", completion = "dir", default = vim.fn.getcwd() }, function(dir) if dir and dir ~= "" then vim.cmd("tcd " .. vim.fn.fnameescape(dir)) end end) end, desc = "[n]ew isolated tab (tcd)" },
+    { "<leader>tc", "<cmd>tabclose<cr>", desc = "[c]lose tab" },
+    { "<leader>to", "<cmd>tabonly<cr>", desc = "[o]nly tab" },
     { "<leader>x", group = "e[x]ecute" },
     { "<leader>xx", ":w<cr>:source %<cr>", desc = "[x] source %" },
   }

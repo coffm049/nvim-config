@@ -2,18 +2,6 @@
 
 local animals = require('misc.style').animals
 
-vim.g.clipboard = {
-  name = 'xclip',
-  copy = {
-    ['+'] = 'xclip -selection clipboard -i',
-    ['*'] = 'xclip -selection primary -i',
-  },
-  paste = {
-    ['+'] = 'xclip -selection clipboard -o',
-    ['*'] = 'xclip -selection primary -o',
-  },
-}
-
 vim.opt.clipboard = "unnamedplus"
 
 -- proper colors

@@ -12,6 +12,7 @@
 
 require 'config.global'
 require 'config.opencode'
+require 'config.env'
 require 'config.lazy'
 require 'config.autocommands'
 require 'config.redir'
