@@ -22,6 +22,11 @@ vim.wo.relativenumber = true
 vim.opt.timeoutlen = 400 -- until which-key pops up
 vim.opt.updatetime = 250 -- for autocommands and hovers
 
+-- Reload buffers whose file changed on disk (e.g. by opencode) without
+-- prompting for confirmation. Only applies to buffers with no unsaved changes
+-- of their own; see misc/sync.lua for the write-then-reload pairing.
+vim.opt.autoread = true
+
 -- don't ask about existing swap files
 vim.opt.shortmess:append 'A'
 
@@ -103,6 +108,16 @@ vim.opt.formatoptions:remove 'o'
 vim.opt.scrolloff = 5
 
 -- (don't == 0) replace certain elements with prettier ones
+-- Use PowerShell as default shell on Windows (installed in conda env, default was cmd.exe)
+-- makes <leader>cn and :! use PowerShell; term://powershell respects this
+if vim.fn.has('win32') == 1 then
+  local shell = vim.fn.executable('pwsh') == 1 and 'pwsh' or 'powershell'
+  vim.opt.shell = shell
+  vim.opt.shellcmdflag = '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command'
+  vim.opt.shellquote = ''
+  vim.opt.shellxquote = ''
+end
+
 vim.opt.conceallevel = 0
 
 -- diagnostics

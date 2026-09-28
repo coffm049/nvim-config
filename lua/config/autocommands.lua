@@ -1,15 +1,34 @@
-vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter' }, {
+-- Kept at file scope on purpose: requiring this registers the FileChangedShell
+-- handler, which must exist before the first buffer is read or an early
+-- conflict can be missed.
+local sync = require 'misc.sync'
+
+-- Pick up files changed outside of nvim (opencode writes straight to disk).
+-- Needs 'autoread' (config/global.lua) to reload silently instead of prompting.
+-- CursorHoldI is deliberately omitted: updatetime is 250ms, so it would reload
+-- the buffer mid-keystroke.
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold' }, {
   pattern = { '*' },
-  command = 'checktime',
+  desc = 'Reload buffers changed outside nvim',
+  callback = function()
+    sync.recheck()
+  end,
 })
+
+-- Global fallback: <Esc> exits terminal anywhere (even if TermOpen didn't fire yet)
+-- Default nvim is <C-\><C-n>; we add <Esc> as convenience but keep original working
+vim.keymap.set('t', '<Esc>', [[<C-\><C-n>]], { noremap = true, silent = true })
+vim.keymap.set('t', '<C-[>', [[<C-\><C-n>]], { noremap = true, silent = true }) -- alias for Esc
 
 vim.api.nvim_create_autocmd({ "TermOpen" }, {
   group = vim.api.nvim_create_augroup("MyTerminalSettings", { clear = true }),
   pattern = { "*" },
   callback = function()
-    local opts = { buffer = true, silent = true }
-    
+    local opts = { buffer = true, silent = true, noremap = true }
+
+    -- Buffer-local <Esc> ensures exit even after global, and survives :terminal re-entry
     vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], opts)
+    vim.keymap.set("t", "<C-[>", [[<C-\><C-n>]], opts)
 
     vim.keymap.set("n", "H", ":tabprevious<CR>", opts)
     vim.keymap.set("n", "L", ":tabnext<CR>", opts)
@@ -17,7 +36,38 @@ vim.api.nvim_create_autocmd({ "TermOpen" }, {
     if string.match(vim.api.nvim_buf_get_name(0), "opencode") then
       vim.keymap.set("n", "<Esc>", "i<Esc>", opts)
       vim.keymap.set("t", "<C-Esc>", [[<C-\><C-n>]], opts)
-      vim.keymap.set("t", "I", [[<Esc>]], opts)
+      -- Removed: Shift-I (I) mapping that intercepted typing "I" in terminal mode
+      -- vim.keymap.set("t", "I", [[<Esc>]], opts) was hijacking normal "I" input
+    end
+  end,
+})
+
+-- Launch default terminal when nvim started with no file (nvim vs nvim file.txt)
+-- Uses default shell (powershell on Windows per config/global.lua, bash/zsh on Unix)
+vim.api.nvim_create_autocmd('VimEnter', {
+  group = vim.api.nvim_create_augroup('AutoOpenTerminal', { clear = true }),
+  callback = function()
+    -- Only when no file arguments provided
+    if vim.fn.argc() == 0 then
+      local bufname = vim.api.nvim_buf_get_name(0)
+      local line_count = vim.fn.line('$')
+      local first_line = vim.fn.getline(1)
+      -- Check for empty buffer (and not already a terminal / alpha edge case)
+      local is_empty = bufname == '' and vim.bo.filetype == '' and line_count == 1 and first_line == ''
+      -- Also allow alpha dashboard buffer (filetype 'alpha' or empty with dashboard)
+      local is_alpha = vim.bo.filetype == 'alpha'
+      if is_empty or is_alpha then
+        -- Use schedule so TermOpen mappings are already defined and alpha is closed
+        vim.schedule(function()
+          -- Close alpha dashboard if present
+          if vim.bo.filetype == 'alpha' then
+            vim.cmd('bdelete')
+          end
+          -- Open terminal using default shell (powershell on Windows)
+          vim.cmd('terminal')
+          -- startinsert is optional; user can press i to enter. Keep it but now Esc/C-[ reliably exits
+        end)
+      end
     end
   end,
 })

@@ -1,6 +1,7 @@
 -- required in which-key plugin spec in plugins/ui.lua as `require 'config.keymap'`
 local wk = require 'which-key'
 local ms = vim.lsp.protocol.Methods
+local sync = require 'misc.sync'
 
 P = vim.print
 
@@ -272,6 +273,12 @@ end
 local function new_terminal_shell()
   -- $SHELL is not set on Windows; fall back to Neovim's 'shell' option
   -- (powershell/cmd on Windows, bash/zsh on Unix)
+  -- On Windows, prefer PowerShell (Windows PowerShell 5.1 or pwsh 7) over cmd
+  if vim.fn.has('win32') == 1 then
+    local shell = vim.fn.executable('pwsh') == 1 and 'pwsh' or 'powershell'
+    new_terminal(shell)
+    return
+  end
   local shell = vim.env.SHELL and vim.env.SHELL ~= '' and vim.env.SHELL or vim.o.shell
   new_terminal(shell)
 end
@@ -301,6 +308,7 @@ vim.keymap.set("n", "<leader>os", get_otter_symbols_lang, {desc = "otter [s]ymbo
 
 vim.keymap.set("n", "<leader>ao", function()
   -- Continue mode: vsplit like opencode.nvim's server.start (vsplit term://opencode --port | wincmd p)
+  sync.write_modified()
   vim.cmd("vsplit term://opencode --port -c | wincmd p")
 end, { desc = "AI: Open OpenCode (continue)" })
 

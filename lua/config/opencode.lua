@@ -2,6 +2,8 @@
 -- vim.pack.add({ { src = "https://github.com/nickjvandyke/opencode.nvim", version = vim.version.range("*") } })
 -- is equivalent to the lazy.nvim spec in lua/plugins/opencode.lua:2.
 
+local sync = require 'misc.sync'
+
 -- Continue mode: when $OPENCODE_CONTINUE=1 in your terminal, start opencode with `-c`
 -- (your snippet adapted to vim.g.opencode_opts API; `require("opencode").setup` does not exist)
 local opencode_args = {}
@@ -16,6 +18,9 @@ vim.g.opencode_opts = vim.tbl_deep_extend("force", vim.g.opencode_opts or {}, {
   server = {
     -- Override start to include continue flag when requested
     start = function()
+      -- flush local edits first, so edits opencode makes to those files can be
+      -- reloaded into the buffer instead of colliding with unsaved changes
+      sync.write_modified()
       local cmd = "opencode --port"
       if #opencode_args > 0 then
         cmd = cmd .. " " .. table.concat(opencode_args, " ")

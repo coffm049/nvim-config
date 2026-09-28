@@ -17,8 +17,22 @@ return {
 
       -- Recommended keymaps (from https://github.com/nickjvandyke/opencode.nvim#setup)
       -- Adjust or remove any that conflict with your existing mappings.
-      vim.keymap.set({ 'n', 'x' }, '<C-a>', function() require('opencode').ask('@this: ') end, { desc = 'Ask OpenCode…' })
-      vim.keymap.set({ 'n', 'x' }, '<C-x>', function() require('opencode').select() end, { desc = 'Select OpenCode…' })
+      --
+      -- ask/select hand real work to the agent, so flush local edits first:
+      -- 'autoread' can only reload a buffer that has no unsaved changes, and
+      -- the agent is about to edit files on disk. The `command`/`operator`
+      -- mappings are left alone: scrolling and building insert text are not
+      -- edit delegations (and expr mappings must stay side-effect free).
+      local sync = require 'misc.sync'
+      local function delegating(fn)
+        return function(...)
+          sync.write_modified()
+          return fn(...)
+        end
+      end
+
+      vim.keymap.set({ 'n', 'x' }, '<C-a>', delegating(function() require('opencode').ask('@this: ') end), { desc = 'Ask OpenCode…' })
+      vim.keymap.set({ 'n', 'x' }, '<C-x>', delegating(function() require('opencode').select() end), { desc = 'Select OpenCode…' })
       vim.keymap.set({ 'n', 'x' }, 'go', function() return require('opencode').operator('@this ') end, { desc = 'Append range to OpenCode', expr = true })
       vim.keymap.set('n', 'goo', function() return require('opencode').operator('@this ') .. '_' end, { desc = 'Append line to OpenCode', expr = true })
       vim.keymap.set('n', '<S-C-u>', function() require('opencode').command('session.half.page.up') end, { desc = 'Scroll OpenCode up' })
