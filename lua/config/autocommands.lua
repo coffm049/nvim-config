@@ -2,6 +2,7 @@
 -- handler, which must exist before the first buffer is read or an early
 -- conflict can be missed.
 local sync = require 'misc.sync'
+local workspace = require 'misc.workspace'
 
 -- Pick up files changed outside of nvim (opencode writes straight to disk).
 -- Needs 'autoread' (config/global.lua) to reload silently instead of prompting.
@@ -33,11 +34,17 @@ vim.api.nvim_create_autocmd({ "TermOpen" }, {
     vim.keymap.set("n", "H", ":tabprevious<CR>", opts)
     vim.keymap.set("n", "L", ":tabnext<CR>", opts)
 
-    if string.match(vim.api.nvim_buf_get_name(0), "opencode") then
+    local buf = vim.api.nvim_get_current_buf()
+    local bufname = vim.api.nvim_buf_get_name(buf)
+    if string.match(bufname, "opencode") then
+      vim.b[buf].opencode = true
       vim.keymap.set("n", "<Esc>", "i<Esc>", opts)
       vim.keymap.set("t", "<C-Esc>", [[<C-\><C-n>]], opts)
       -- Removed: Shift-I (I) mapping that intercepted typing "I" in terminal mode
       -- vim.keymap.set("t", "I", [[<Esc>]], opts) was hijacking normal "I" input
+      vim.schedule(function()
+        workspace.name_terminal(buf, 'oc')
+      end)
     end
   end,
 })
@@ -65,10 +72,23 @@ vim.api.nvim_create_autocmd('VimEnter', {
           end
           -- Open terminal using default shell (powershell on Windows)
           vim.cmd('terminal')
+          workspace.name_terminal_buffer(vim.api.nvim_get_current_buf())
           -- startinsert is optional; user can press i to enter. Keep it but now Esc/C-[ reliably exits
         end)
       end
     end
+  end,
+})
+
+-- Name the initial tab (and its startup terminal, if any) after the cwd
+vim.api.nvim_create_autocmd('VimEnter', {
+  group = vim.api.nvim_create_augroup('WorkspaceTabName', { clear = true }),
+  callback = function()
+    vim.schedule(function()
+      pcall(vim.cmd, 'redrawtabline')
+      workspace.name_current_tab()
+      workspace.name_terminal_buffer(vim.api.nvim_get_current_buf())
+    end)
   end,
 })
 

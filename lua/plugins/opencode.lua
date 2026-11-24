@@ -3,9 +3,9 @@ return {
     'nickjvandyke/opencode.nvim',
     version = '*',
     dependencies = {
-      -- Recommended for enhanced `ask` (input) and `select` (picker) UX,
-      -- but not strictly required. Uncomment if you use snacks.nvim.
-      -- 'folke/snacks.nvim',
+      -- Recommended for enhanced `ask` (input) and `select` (picker) UX.
+      -- snacks.input/picker are disabled by default, so enable them here.
+      { 'folke/snacks.nvim', opts = { input = { enabled = true }, picker = { enabled = true } } },
       'nvim-lua/plenary.nvim',
     },
     config = function()

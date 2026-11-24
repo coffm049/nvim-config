@@ -312,13 +312,19 @@ vim.keymap.set("n", "<leader>ao", function()
   vim.cmd("vsplit term://opencode --port -c | wincmd p")
 end, { desc = "AI: Open OpenCode (continue)" })
 
--- Tabs: isolated project tabs (Option A - :tabnew | tcd)
-vim.keymap.set("n", "<leader>tn", function()
-  vim.cmd("tabnew")
-  vim.ui.input({ prompt = "New tab CWD: ", completion = "dir", default = vim.fn.getcwd() }, function(dir)
-    if dir and dir ~= "" then vim.cmd("tcd " .. vim.fn.fnameescape(dir)) end
+-- Tabs: isolated project workspaces (tabnew | tcd | named terminal)
+local workspace = require 'misc.workspace'
+
+local function new_workspace()
+  vim.ui.input({ prompt = "New workspace directory: ", completion = "dir", default = vim.fn.getcwd() }, function(dir)
+    if dir == nil then
+      return
+    end
+    workspace.new_workspace(dir)
   end)
-end, { desc = "[t]ab [n]ew isolated (tcd)" })
+end
+
+vim.keymap.set("n", "<leader>tn", new_workspace, { desc = "[t]ab [n]ew workspace" })
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "[t]ab [c]lose" })
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "[t]ab [o]nly" })
 
@@ -407,9 +413,6 @@ wk.add({
     { "<leader>vs", ":e $MYVIMRC | :cd %:p:h | split . | wincmd k<cr>", desc = "[s]ettings, edit vimrc" },
     { "<leader>vt", toggle_light_dark_theme, desc = "[t]oggle light/dark theme" },
     { "<leader>t", group = "[t]ab" },
-    { "<leader>tn", function() vim.cmd("tabnew"); vim.ui.input({ prompt = "New tab CWD: ", completion = "dir", default = vim.fn.getcwd() }, function(dir) if dir and dir ~= "" then vim.cmd("tcd " .. vim.fn.fnameescape(dir)) end end) end, desc = "[n]ew isolated tab (tcd)" },
-    { "<leader>tc", "<cmd>tabclose<cr>", desc = "[c]lose tab" },
-    { "<leader>to", "<cmd>tabonly<cr>", desc = "[o]nly tab" },
     { "<leader>x", group = "e[x]ecute" },
     { "<leader>xx", ":w<cr>:source %<cr>", desc = "[x] source %" },
   }

@@ -1,5 +1,13 @@
 return {
 
+  { -- scope buffers to the tab (workspace) they were opened in
+    'tiagovla/scope.nvim',
+    lazy = false,
+    config = function()
+      require('scope').setup {}
+    end,
+  },
+
   { -- manage projects
     'gnikdroy/projections.nvim',
     keys = {

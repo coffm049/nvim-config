@@ -39,6 +39,11 @@ if conda ~= '' and vim.fn.isdirectory(conda .. '/Library') == 1 then
   end
 end
 
+-- matplotlib: use the Tk GUI backend so `plt.show()` opens a figure window
+-- instead of the non-interactive Agg backend (which warns and draws nothing).
+-- tkinter is available in this Python; GUI windows appear regardless of nvim.
+vim.env.MPLBACKEND = vim.env.MPLBACKEND or 'TkAgg'
+
 -- tree-sitter-cli uses $CC to pick a C compiler (defaults to MSVC cl.exe)
 if vim.fn.executable('gcc') == 1 then
   vim.env.CC = vim.env.CC or 'gcc'
